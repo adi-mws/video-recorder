@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Video Recorder",
+    "slug": "video-recorder",
+    "owner": "adi-mws",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/video-rec.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.adimws.videorecorder",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to share live tracking updates.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app tracks your location in the background to keep the live map updated.",
+        "UIBackgroundModes": [
+          "location"
+        ]
+      }
+    },
+    "android": {
+      "package": "com.adimws.videorecorder",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/video-rec.png"
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to access your location in the background for live tracking.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/video-rec.png"
+    }
+  }
+}

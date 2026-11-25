@@ -1,33 +1,48 @@
-# MERN + MUI + Socket.IO Starter
+# Video Recorder — Live Location Tracker (MERN + Expo + Socket.IO)
 
-A clean MERN stack setup with:
-- **MongoDB & Mongoose** (`server/src/config/db.js`, `server/src/models/Message.js`)
-- **Express** (`server/src/index.js`, `server/src/routes/messages.js`)
-- **React + Vite + Material UI (MUI)** (`client/src/App.jsx`, `client/src/theme.js`)
-- **Socket.IO** (`server/src/socket/index.js`, `client/src/services/socket.js`)
+Single-repository full-stack setup containing the Express + MongoDB + Socket.IO server, the React + MUI + Leaflet web dashboard, and the Expo React Native background location tracker (`Video Recorder`).
 
 ## Structure
 
 ```text
 video-recorder/
 ├── package.json        # Root scripts (concurrently)
-├── server/             # Express + Mongoose + Socket.IO backend
-│   ├── .env
+├── server/             # Express + Mongoose + JWT + Socket.IO backend
+│   ├── .env.example
 │   └── src/
 │       ├── config/db.js
-│       ├── models/Message.js
-│       ├── routes/messages.js
+│       ├── middleware/auth.js
+│       ├── models/Location.js
+│       ├── routes/
+│       │   ├── auth.js
+│       │   └── location.js
+│       ├── services/locationService.js
 │       ├── socket/index.js
 │       └── index.js
-└── client/             # React + Vite + MUI + Socket.IO client
-    ├── .env
+├── client/             # React + Vite + MUI + Leaflet web dashboard
+│   ├── .env.example
+│   └── src/
+│       ├── components/
+│       │   ├── LiveLocationCard.jsx
+│       │   ├── LiveMap.jsx
+│       │   └── LoginForm.jsx
+│       ├── services/
+│       │   ├── api.js
+│       │   └── socket.js
+│       ├── theme.js
+│       ├── App.jsx
+│       └── main.jsx
+└── mobile/             # Expo React Native app ("Video Recorder")
+    ├── .env.example
+    ├── app.json
+    ├── assets/video-rec.png
     └── src/
+        ├── config/server.js
         ├── services/
         │   ├── api.js
-        │   └── socket.js
-        ├── theme.js
-        ├── App.jsx
-        └── main.jsx
+        │   ├── socket.js
+        │   └── storage.js
+        └── tasks/locationTask.js
 ```
 
 ## Getting Started
@@ -37,27 +52,19 @@ video-recorder/
    npm run install:all
    ```
 
-2. **Configure environment variables** (already pre-populated with defaults):
-   - `server/.env`:
-     - `PORT=5000`
-     - `MONGO_URI=mongodb://127.0.0.1:27017/video_recorder_mern`
-     - `CLIENT_URL=http://localhost:5173`
-     - `AUTH_USERNAME=admin`
-     - `AUTH_PASSWORD=changeme123`
-     - `JWT_SECRET=dev-local-jwt-secret-change-in-production`
-     - `JWT_EXPIRES_IN=7d`
-   - `client/.env`: `VITE_API_URL=http://localhost:5000`, `VITE_SOCKET_URL=http://localhost:5000`
+2. **Configure environment variables** (copy `.env.example` to `.env` in `server/`, `client/`, and `mobile/`):
+   - `server/.env`: `PORT`, `MONGO_URI`, `CLIENT_URL`, `AUTH_USERNAME`, `AUTH_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`
+   - `client/.env`: `VITE_API_URL`, `VITE_SOCKET_URL`
+   - `mobile/.env`: `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_AUTH_USERNAME`, `EXPO_PUBLIC_AUTH_PASSWORD`
 
-3. **Run both client and server**:
+3. **Run the server and web dashboard**:
    ```bash
    npm run dev
    ```
-   - Frontend: `http://localhost:5173`
-   - Backend API: `http://localhost:5000/api/health`
+   - Web dashboard: `http://localhost:5173`
+   - Backend health check: `http://localhost:5000/api/health`
 
-4. **Run the Expo native app (`mobile/`)**:
+4. **Run the Expo mobile app (`mobile/`)**:
    ```bash
    npm run mobile
    ```
-   - Press `a` for Android emulator (`http://10.0.2.2:5000`), `i` for iOS simulator (`http://localhost:5000`), or scan the QR code with Expo Go using your computer's LAN IP (e.g. `http://192.168.x.x:5000`).
-
