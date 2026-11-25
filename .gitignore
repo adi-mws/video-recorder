@@ -1,0 +1,14 @@
+# Ignore dependencies & build outputs
+node_modules/
+client/node_modules/
+server/node_modules/
+mobile/node_modules/
+client/dist/
+mobile/.expo/
+mobile/dist/
+.env
+server/.env
+client/.env
+mobile/.env
+*.log
+
