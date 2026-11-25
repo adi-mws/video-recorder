@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as Location from 'expo-location';
 import './src/tasks/locationTask';
 import { getDefaultServerUrl } from './src/config/server';
-import { loginRequest, postLocationRequest } from './src/services/api';
+import { loginRequest } from './src/services/api';
 import { createSocketClient } from './src/services/socket';
 import {
   getStoredToken,
@@ -58,9 +58,10 @@ export default function App() {
       }
     };
 
-    const sendSingleFix = async (useRestApi = false) => {
-      const { fgGranted, servicesEnabled, serverUrl, token } = stateRef.current;
-      if (!fgGranted || !servicesEnabled || !token) return;
+    const sendSingleFix = async () => {
+      const { fgGranted, servicesEnabled } = stateRef.current;
+      const socket = socketRef.current;
+      if (!fgGranted || !servicesEnabled || !socket?.connected) return;
 
       try {
         const pos = await Location.getCurrentPositionAsync({
@@ -76,12 +77,7 @@ export default function App() {
           recordedAt: new Date(pos.timestamp || Date.now()).toISOString(),
         };
 
-        const socket = socketRef.current;
-        if (!useRestApi && socket?.connected) {
-          socket.emit('location:update', coords);
-        } else {
-          await postLocationRequest(serverUrl, token, coords);
-        }
+        socket.emit('location:update', coords);
       } catch {
         // Remain silent if location becomes unavailable mid-call
       }
@@ -127,7 +123,7 @@ export default function App() {
     const startEmission = async (seconds = stateRef.current.intervalSec) => {
       clearForegroundTimer();
 
-      await sendSingleFix(true);
+      await sendSingleFix();
 
       let mode = 'foreground';
       if (stateRef.current.bgGranted) {
@@ -146,7 +142,7 @@ export default function App() {
             stateRef.current.servicesEnabled &&
             stateRef.current.fgGranted
           ) {
-            sendSingleFix(false);
+            sendSingleFix();
           }
         }, seconds * 1000);
       }
@@ -253,7 +249,7 @@ export default function App() {
           stateRef.current.fgGranted &&
           stateRef.current.servicesEnabled
         ) {
-          sendSingleFix(false);
+          sendSingleFix();
         }
       });
 

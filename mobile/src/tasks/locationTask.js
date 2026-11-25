@@ -1,8 +1,8 @@
-import { AppState } from 'react-native';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { getDefaultServerUrl } from '../config/server';
 import { loginRequest, postLocationRequest } from '../services/api';
+import { createSocketClient } from '../services/socket';
 import {
   getStoredServerUrl,
   getStoredToken,
@@ -32,13 +32,38 @@ function formatCoords(loc) {
   };
 }
 
+function emitViaTemporarySocket(serverUrl, token, coords) {
+  return new Promise((resolve, reject) => {
+    const tempSocket = createSocketClient(serverUrl, token);
+    const timeout = setTimeout(() => {
+      tempSocket.disconnect();
+      reject(new Error('Socket timeout'));
+    }, 4500);
+
+    tempSocket.on('connect', () => {
+      tempSocket.emit('location:update', coords, (ack) => {
+        clearTimeout(timeout);
+        tempSocket.disconnect();
+        if (ack?.ok) resolve(ack);
+        else reject(new Error(ack?.error || 'Location ack failed'));
+      });
+    });
+
+    tempSocket.on('connect_error', (err) => {
+      clearTimeout(timeout);
+      tempSocket.disconnect();
+      reject(err);
+    });
+  });
+}
+
 TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
   if (error || !data?.locations?.length) return;
 
   const latest = data.locations[data.locations.length - 1];
   const coords = formatCoords(latest);
 
-  if (AppState.currentState === 'active' && activeSocket?.connected) {
+  if (activeSocket?.connected) {
     activeSocket.emit('location:update', coords);
     return;
   }
@@ -60,7 +85,12 @@ TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
     }
 
     if (!token || !serverUrl) return;
-    await postLocationRequest(serverUrl, token, coords);
+
+    try {
+      await emitViaTemporarySocket(serverUrl, token, coords);
+    } catch {
+      await postLocationRequest(serverUrl, token, coords);
+    }
   } catch {
     // Ignore transient network errors in background; next interval will retry.
   }
